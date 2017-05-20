@@ -6,7 +6,7 @@ class Game():
         self.board = Board()
         self.playerList = [Mat('e'), Mat('c'), Mat('r')]
         self.numRounds = 14
-        self.stages = [0,0,0,0,1,1,1,2,2,3,3,4,4,5]
+        self.stages = [0,0,0,0,1,1,1,2,2,3,3,4,4,5] #stage game is in for each of the 14 rounds
         self.harvests = [3,6,8,10,12,13] #rounds after which there are harvests, 0-indexed
         self.startingPlayer = 0
         self.adultPortion = 2
@@ -37,6 +37,7 @@ class Game():
         #make a list of the starting player and then the others
         order = self.playerList[self.startingPlayer:] + self.playerList[:self.startingPlayer]
         #print(max(lambda x: self.playerList[x].members, list(range(len(self.playerList)))))
+
 
         numActions = max(self.playerList, key=lambda p: p.members).members
         chosenActions = []
@@ -78,7 +79,7 @@ class Game():
 
         #feed family
             player.stores[supplies['food']] -= player.babies * self.babyPortion + player.members * self.adultPortion
-            if player.stores[supplies['food']] > 0:
+            if player.stores[supplies['food']] < 0:
                 player.beggingCards += (player.stores[supplies['food']] * -1)
                 player.stores[supplies['food']] = 0
 
@@ -86,7 +87,7 @@ class Game():
             player.members += player.babies
             player.babies = 0
 
-        #breeding #TODO test!
+        #breeding
             for animal in [supplies['sheeps'],supplies['pigs'],supplies['cows']]:
                 if player.stores[animal] >= 2:
                     player.stores[animal] += 1
@@ -128,6 +129,8 @@ class Mat():
         self.members = 2
         self.babies = 0
         self.beggingCards = 0
+        self.roomType = 0
+        global roomTypes = ["wood","stone","brick"]
 
     def __str__(self):
         output = "{}'s mat:\n{} members\n\n".format(self.name, self.members)
@@ -141,12 +144,13 @@ class Mat():
                 output += "{}\t".format(c)
         return output
 
-
 class Space():
-    pass
+    def __str__(self):
+        return "."
 
 class House(Space):
-    pass
+    def __str__(self):
+        return roomTypes[self.roomType][0:1] + "r"
 
 class Field(Space):
     pass
@@ -203,7 +207,7 @@ class Card(Action):
     def __init__(self, kind):
         self.kind = kind
 
-    def execute(self,mat):
+    def execute(self, mat):
         mat.playedCards.append(self.kind)
 
     def __str__(self):
@@ -218,7 +222,7 @@ class StartingPlayer(Action):
 
 class FamilyGrow(Action):
     def execute(self, mat):
-        pass
+        mat.babies += 1
 
     def __str__(self):
         return "family growth"
